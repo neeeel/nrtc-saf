@@ -1,0 +1,152 @@
+<html>
+
+{% load static %}
+
+
+{% if assigned %}
+<script>
+	var assigned = "{{assigned}}"
+	var username = "{{username}}"
+	console.log(assigned)
+</script>
+
+{% endif %}
+
+
+<script type="text/javascript">
+        function stopRKey(evt) {
+          var evt = (evt) ? evt : ((event) ? event : null);
+          var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null);
+          if ((evt.keyCode == 13) && (node.type=="text"))  {
+
+          console.log("detected");
+          console.log(this);
+          console.log(evt.target.id);
+          console.log(evt.target.value);
+		  var previousVal = evt.target.value
+          $.ajax({
+		type: "POST",
+		url: "/jobs/updateDbColumn",
+		data: JSON.stringify({"id":evt.target.id,"value":evt.target.value}),
+		dataType: "json",
+		contentType: "application/json; charset=utf-8",
+		traditional: true,
+		success: function (response) {
+		    console.log("trying to edit job");
+			console.log(response.data);
+			console.log(previousVal)
+			if (response.data == "OK") {
+				displayMessage('msg-error', "Successfully Saved");
+				evt.target.value = response.value
+			} else if (response.data == "FAILED"){
+				displayMessage('msg-error', "Couldnt Save");
+				evt.target.value = response.value
+			} else if (response.data == "VALUEERROR") {
+				displayMessage('msg-error', "Incorrect Data Type");
+				evt.target.value = response.value
+			}
+            console.log("aero");
+
+			if (response.error) {
+				displayMessage('msg-error', response.error);
+			} else {
+				//var data = response.data;
+
+
+			}
+		},
+		error: function(textStatus, errorThrown) {
+		    console.log("OH phoo couldnt edit job");
+
+			//displayMessage('msg-error', "Error[004] - Unable to get edit job");
+		}
+	});
+
+
+
+
+
+
+
+
+
+          return false;}
+        }
+
+        document.onkeypress = stopRKey;
+
+        </script>
+
+<head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>NRTC Admin Sign Off</title>
+<link rel="stylesheet" href="/static/bootstrap.css" type="text/css">
+<link rel="stylesheet" href="/static/base-style.css" type="text/css">
+
+
+
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/static/bootstrap.min.js"></script>
+</head>
+
+<body>
+	<div id="message-box" class="msg-hidden"></div>
+	<div id="wrapper">
+		<div class="header">
+			<header class="header-inner">
+				<a href="http://tracsistraffic.com">
+					<img id="tracsis-logo"   src= "/static/Tracsisplcnewlogo.png"   width="132" alt="Tracsis Traffic and Data Services" />
+					<img id="tracsis-logo2" src="/static/Traffic and Data Services-grey.png" width="300" alt="Tracsis Traffic and Data Services" />
+				</a>
+			</header>
+		</div>
+
+		<ul class="navigation">
+			<li>Logged in as: {{request.session.username}}</li>	<li> - </li>
+
+
+			<div>
+				<ul class="office-list">
+					<li><form id="Project-Search" action="/nrtc/searchProject" method=post style="display: inline;">
+							{% csrf_token %}
+							<b>Project No. </b><INPUT TYPE = 'TEXT' Name ='projectNo'  value="" maxlength="20">
+							<a href="javascript:{}" onclick="document.getElementById('Project-Search').submit();" >Search</a>
+
+					</form></li>
+
+				</ul>
+			</div>
+		</ul>
+
+		<div class="content-container" id="container-jobs">
+			<div class="content" id="content-jobs">
+				<div id="tableGroup" style="position:absolute;top:10%;left:8%;max-height:70%;overflow:auto;max-width:85%">
+					<div id="projectsTable">
+						<div id="divHead1">
+							<table id='tableHead1'>
+								<tr>
+									{% for h in headers %}
+									<th class="w1">{{h}}</th>
+									{% endfor %}</tr>
+									{% for proj in projects %}<tr>
+									<td class="w1"><a href="/nrtc/viewProject/{{proj.countPointCode}}">Check</a></td>
+
+									<td class="w3">{{proj.CPCode}}</td>
+									<td class="w3">{{proj.DfTRegion}}</td>
+									<td class="w3">{{proj.roadNo}}</td>
+									<td class="w3">{{proj.roadName}}</td>
+									<td class="w3">{{proj.originalSurveyDate}}</td>
+									<td class="w3">{{proj.scheduledDate}}</td>
+								</tr>
+                				{% endfor %}
+                            </table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="/static/jobs.js"></script>
+</body>
+</html>
