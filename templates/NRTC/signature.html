@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>NRTC SAF Signature</title>
+    <link rel="stylesheet" href="/static/NRTC/bootstrap.css" type="text/css">
+    <link rel="stylesheet" href="/static/NRTC/base-style.css" type="text/css">
+    <link rel="stylesheet" href="/static/NRTC/style.css" type="text/css">
+    <link rel="stylesheet" href="/static/NRTC/jquery.signaturepad.css" type="text/css">
+
+
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="/static/NRTC/jquery.signaturepad.min.js"></script>
+    <script src="/static/NRTC/json2.min.js"></script>
+    <script>
+
+    $(document).ready(function () {
+        $('.sigPad').signaturePad({drawOnly:true});
+    });
+    </script>
+</head>
+<body>
+<div id = "topbar"></div>
+
+<div>
+<div  style="background-color: #f6f6f6;" class="header-bar">
+    <div>
+    <a href="http://tracsistraffic.com">
+        <img id="tracsis-logo"    src= "/static/NRTC/Tracsisplcnewlogo.png" alt="Tracsis Traffic and Data Services" width = "100" height="50" />
+
+    </a></div>
+    <div style="background-color: #f6f6f6;padding-left:10px;height:50px"><h3> NRTC-Site Assessment App</h3></div>
+        </div>
+
+</div>
+
+<div class="radiobuttons-wrapper" style="margin-top:30px">
+    <form method="post" action="/nrtc/finish" class="sigPad" id = "complete">
+  {% csrf_token %}
+    <span>Please Draw Your Signature</span>
+  <ul class="sigNav">
+    <li class="clearButton"><a href="#clear">Clear</a></li>
+  </ul>
+  <div class="sig sigWrapper">
+    <div class="typed"></div>
+    <canvas class="pad" width="598" height="355"></canvas>
+    <input type="hidden" name="output" class="output">
+  </div>
+        <button class="app-button" type="submit" form ="back">Back</button>
+  <button class="app-button" type="submit" form = "complete">Save Signature</button>
+
+</form>
+<form method="post" action="/nrtc/getNetworkInfo" id="back">{% csrf_token %}</form>
+
+
+</div>
+
+
+</body>
+</html>

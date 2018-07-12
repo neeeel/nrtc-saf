@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Administrator App</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+
+      }
+    </style>
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://tads.tracsis.com/dm/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/static/NRTC/bootstrap.css" type="text/css">
+    <link rel="stylesheet" href="/static/NRTC/base-style.css" type="text/css">
+      <link rel="stylesheet" href="/static/NRTC/style.css" type="text/css">
+  </head>
+  <body>
+
+
+
+
+
+<div id = "topbar"></div>
+
+<div>
+<div  style="background-color: #f6f6f6;" class="header-bar">
+    <div>
+    <a href="http://tracsistraffic.com">
+        <img id="tracsis-logo"    src= "/static/NRTC/Tracsisplcnewlogo.png" alt="Tracsis Traffic and Data Services" width = "200" height="100" />
+
+    </a></div>
+    <div style="background-color: #f6f6f6;padding-left:10px;height:50px"><h2> NRTC-SAF Administrator App</h2></div>
+        </div>
+
+</div>
+
+
+<div class="nav-bar">
+    <form action="/nrtc/supervisorindex" id ="projectMap" method="post" enctype="multipart/form-data" style="margin-bottom:0px;margin-left:20px">
+            {% csrf_token %}
+        </form>
+        <button class = "button"  type="submit" form="projectMap">View Project List</button>
+
+</div>
+
+
+
+<div style="margin-top:10px;" class="container">
+    <div style="position:absolute;width:100%;height:calc(100% - 272px)">
+
+
+        <div id = "map" style="position:absolute;top:0;right:0;left:0;bottom:0;border: 3px grey solid">
+        </div>
+
+    </div>
+
+ </div>
+
+
+
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAiM6ueMh2rnoP2ac_luRmcpdcIQbaOgew&libraries=drawing"
+    ></script>
+  <script src="/static/NRTC/projectMap.js"></script>
+
+
+  </body>
+</html>

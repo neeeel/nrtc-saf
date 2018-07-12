@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>NRTC SAF</title>
+    <link rel="stylesheet" href="/static/NRTC/bootstrap.css" type="text/css">
+    <link rel="stylesheet" href="/static/NRTC/base-style.css" type="text/css">
+
+
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://tads.tracsis.com/dm/plugins/bootstrap/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div id = "topbar"></div>
+<div>
+<div  style="background-color: #f6f6f6;" class="header-bar">
+    <div>
+    <a href="http://tracsistraffic.com">
+        <img id="tracsis-logo"    src= "/static/NRTC/Tracsisplcnewlogo.png" alt="Tracsis Traffic and Data Services" width = "100" height="50" />
+
+    </a></div>
+    <div style="background-color: #f6f6f6;padding-left:10px;height:50px"><h3> NRTC-Site Assessment App</h3></div>
+        </div>
+
+</div>
+
+
+<div class = "nav-bar" >
+
+</div>
+
+
+<div style ="display: flex;flex-direction: column;justify-content: center;align-items: center;">
+    <form id="start-check" action="/nrtc/map" method=post >
+            {% csrf_token %}
+        <div style="padding-top:50px">
+        <table border = "0" style="border-collapse:collapse;border:none" >
+
+<tr>
+<td> <h3>Select Count Point Number</h3></td>
+<td>
+            <select name="CPNo" id="CPNo" style="width:100%">
+                <option  value="null">-------</option>
+                {% for cp in surveys %}
+                <option value="{{cp}}" {% if cp == selectedCp %}selected="selected"{% endif %}>{{cp}}</option>
+                {% endfor %}
+
+            </select></td>
+            <td colspan="2"><button class = "app-button" type="submit" form="start-check" value="Details" name="Details">Start</button></td></tr></table>
+    </div></form></div>
+
+
+
+
+</body>
+</html>

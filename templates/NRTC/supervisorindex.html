@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>NRTC - Supervisor</title>
+    <link rel="stylesheet" href="/static/NRTC/bootstrap.css" type="text/css">
+    <link rel="stylesheet" href="/static/NRTC/base-style.css" type="text/css">
+
+
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://tads.tracsis.com/dm/plugins/bootstrap/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div id = "topbar"></div>
+<div>
+<div  style="background-color: #f6f6f6;" class="header-bar">
+    <div>
+    <a href="http://tracsistraffic.com">
+        <img id="tracsis-logo"    src= "/static/NRTC/Tracsisplcnewlogo.png" alt="Tracsis Traffic and Data Services" width = "100" height="50" />
+
+    </a></div>
+    <div style="background-color: #f6f6f6;padding-left:10px;height:50px"><h3> NRTC-SAF Supervisor App</h3></div>
+        </div>
+
+</div>
+
+
+
+<div class = "nav-bar" >
+
+
+    <form id="start-check" style="margin-bottom:5px;margin-top:5px">
+            {% csrf_token %}
+
+
+     </form>
+
+
+    <form action="/nrtc/updateScheduleFromClientFile" id ="uploadSchedule" method="post" enctype="multipart/form-data" style="margin-bottom:0px;margin-left:20px">
+            {% csrf_token %}
+            <input type='file'  id="upload_file" style="display:none" name ="upload_file"/>
+
+        </form>
+        <button class = "button"  id ="btnFileUpload">Upload Schedule</button>
+    <form action="/nrtc/projectMap" id ="projectMap" method="post" enctype="multipart/form-data" style="margin-bottom:0px;margin-left:20px">
+            {% csrf_token %}
+        </form>
+        <button class = "button"  type="submit" form="projectMap">View Project Map</button>
+
+
+
+</div>
+
+
+<div style="margin-top:10px;" class="container">
+
+
+
+
+
+{% if projects %}
+<div id ="check-details" class="inline-div" style="height:100% - 234px;width:100%;display: flex;flex-direction: column;justify-content: center;align-items: center;">
+    <div>
+            <div style="width:auto;border: 3px grey solid;margin-top:5px;max-height:616px">
+                <div>
+                <table  class = "table-style-two" id="header-table">
+                    <tr>
+                        {% for h in headers|slice:":-1" %}
+
+                        <th class="{{h.1}}">{{h.0}}</th>
+                        {% endfor %}</tr>
+                    <tr>
+                        {% for h in headers|slice:":-1" %}
+
+                        <td class="{{h.1}} filter" style="background-color:grey" onclick="getList({{forloop.counter}});">[filter]</td>
+
+                        {% endfor %}</tr>
+                </table>
+            </div>
+
+            <div style="overflow:auto;max-height:496px;width:100%">
+                <table  class = "table-style-two" id = "data-table">
+                    {% for proj in projects %}
+                    <tr>
+
+
+                        <td class="w1">{{proj.CPCode}}</td>
+                        <td class="w3">{{proj.DfTRegion}}</td>
+                        <td class="w3">{{proj.roadNo}}</td>
+                        <td class="w3">{{proj.roadName}}</td>
+                        <td class="w3">{{proj.originalSurveyDate}}</td>
+                        <td class="w3">{{proj.scheduledDate}}</td>
+
+                        <td class="w1"><button class="button" onclick="location.href='/nrtc/viewProject/{{proj.countPointCode}}';">View</button></td>
+                        </tr>
+                {% endfor %}
+
+                </table>
+            </div></div>
+
+
+
+
+
+</div></div>
+
+
+
+{% endif %}
+</div>
+
+<div class="dropdown" id = "dropdown">
+  <div id="myDropdown" class="dropdown-content">
+    <input type="text" placeholder="Search.." id="myInput" onkeyup="filterFunction()">
+
+  </div>
+</div>
+
+
+</body>
+
+<script>
+    console.log("WETRWRWR");
+    var headers = document.getElementById("header-table");
+    var dd = document.getElementById("dropdown");
+    console.log(headers);
+    console.log(headers.rows[1].cells.length);
+    for (i=0;i<headers.rows[1].cells.length;i++){
+           var el = headers.rows[1].cells[i];
+           console.log(el);
+           el.addEventListener("click",function(e){
+
+             pos = e.target.getBoundingClientRect();
+             console.log(pos);
+             var dd = document.getElementById("dropdown");
+             dd.style.position = "absolute";
+             dd.style.left = pos["x"] + "px";
+             dd.style.top = pos["bottom"]  + "px";
+             dd.style.display = "block";
+             window.onclick = function(event) {
+                console.log(event.target,dd);
+                if (!event.target.isEqualNode(dd)) {
+                    dd.style.display = "none";
+                }
+            }
+            });
+
+    }
+
+    function display_filter(element){
+
+
+
+    }
+
+</script>
+
+
+<script src="/static/NRTC/supervisorindex.js"></script>
+</html>
