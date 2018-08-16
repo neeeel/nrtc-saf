@@ -374,8 +374,8 @@ function openTextModal(evt) {
     }
 
     if (!standout){
-        alert("You need to have at least 1 standout location");
-        return;
+        //alert("You need to have at least 1 standout location");
+        //return;
     }
 
     var modal = document.getElementById('textModal');

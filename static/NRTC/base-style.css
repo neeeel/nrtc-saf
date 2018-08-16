@@ -36,7 +36,9 @@
 }
 
 
-
+.filter{
+    cursor:pointer;
+}
 
 
 .button {

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Photo</title>
+    <link rel="stylesheet" href="/static/NRTC/bootstrap.css" type="text/css">
+    <link rel="stylesheet" href="/static/NRTC/base-style.css" type="text/css">
+
+
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://tads.tracsis.com/dm/plugins/bootstrap/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div id = "topbar"></div>
+
+<div>
+<div  style="background-color: #f6f6f6;" class="header-bar">
+    <div>
+    <a href="http://tracsistraffic.com">
+        <img id="tracsis-logo"    src= "/static/NRTC/Tracsisplcnewlogo.png" alt="Tracsis Traffic and Data Services" width = "100" height="50" />
+
+    </a></div>
+    <div style="background-color: #f6f6f6;padding-left:10px;height:50px"><h3> NRTC-Site Assessment App</h3></div>
+        </div>
+
+</div>
+
+<div style="display: flex;flex-direction: column;justify-content: center;   align-items: center;margin-top:30px">
+    <h2>Site Photo</h2>
+
+
+    <div style="margin-top:20px">
+            <img src="" id="photo-img" width="500" height="500">
+        </div>
+
+    <form id="photo-form" action="/nrtc/savePhoto" method=post enctype="multipart/form-data">
+            {% csrf_token %}
+
+
+            <div style ="margin-top:20px">
+
+            <label class="app-button" >
+                <input  name="imageFile" type="file" onchange="displayFileName(event);" id="image-upload" style="display:none">
+
+                Take Photo
+            </label>
+            <span id = "filename"></span>
+
+
+
+
+        </div>
+
+
+    </form>
+
+        <div >
+            <button class = "app-button" onclick="savePhoto();">Submit</button></div>
+
+
+</div>
+
+
+</body>
+
+<script>
+
+    function savePhoto(){
+        var form = document.getElementById("photo-form");
+        if (document.getElementById("image-upload").files.length == 0){
+            alert("You need to take at least one photo");
+            return;
+        }
+        form.submit();
+
+    }
+
+    function checkNumberOfDefects(event){
+        var crosses = document.getElementById("failed").value;
+        console.log(crosses);
+        var defects = document.getElementById("defects-table").rows.length-1;
+        console.log(defects);
+        if(defects < crosses){
+            alert("You have " + String(crosses) + " items that failed a check. You need to enter a defect for each failed check ");
+            return
+        }
+        var form = document.getElementById("next");
+        form.submit();
+
+    }
+
+    function displayFileName(event){
+        var ele = document.getElementById("filename");
+        var f = event.target.value;
+        var file = document.querySelector('input[type=file]').files[0];
+        var reader  = new FileReader();
+        var img = document.getElementById("photo-img");
+        reader.onloadend = function () {
+          img.src = reader.result;
+        };
+        if (file) {
+          // Load image as a base64 encoded URI
+          reader.readAsDataURL(file);
+        }
+        else {
+          img.src = "";
+        }
+
+        //console.log(f);
+        //ele.innerText=f.split("\\")[2];
+
+
+    }
+
+</script>
+</html>

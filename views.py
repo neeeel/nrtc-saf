@@ -9,7 +9,7 @@ import pandas as pd
 from django.template import loader, Context
 from django.conf import settings
 from functools import wraps
-
+from signpad2image.signpad2image import s2if
 
 from pyproj import Proj, transform,Geod
 import time
@@ -19,6 +19,7 @@ import NRTC.trafficscotland
 import datetime
 import smopy
 from PIL import Image,ImageDraw,ImageFont
+import os
 
 import PyPDF2
 
@@ -29,7 +30,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
-
+tfcGrading = {1:[8,6],2:[6,4],3:[4,2],4:[3,2],5:[3,2],6:[2,1],7:[2,1]}
 itemTypes = ["toilet", "food", "school","parking","standout","warning","hospital","military"]
 
 def require_https(view):
@@ -117,7 +118,7 @@ def get_osm_map(lat,lon,zoom,items,line):
     else:
         y -= 1
         y_coord += 256
-    full_img = Image.new("RGBA", (1280,1024), (0, 0, 0, 0))
+    full_img = Image.new("RGBA", (1280,1024), (0, 0, 0,0))
     img = smopy.fetch_map([x, y, x + 2, y + 3], zoom)
     print("size of initial img is",img.size)
     print("size of initial img is",img.size)
@@ -150,7 +151,7 @@ def get_osm_map(lat,lon,zoom,items,line):
         marker = marker.resize((40, 40), Image.ANTIALIAS)
         img.paste(marker, (int(xoffset)-20, int(yoffset)-40), mask=marker)
     coords = []
-    lineImg = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    lineImg = Image.new("RGBA", img.size, (0, 0, 0,0))
     for point in line:
         item_x, item_y = smopy.get_tile_coords(point[0], point[1], zoom)
         xoffset = (item_x - x) * 256
@@ -158,7 +159,7 @@ def get_osm_map(lat,lon,zoom,items,line):
         yoffset = (item_y - y) * 256
         coords.append((int(xoffset), int(yoffset)))
     draw = ImageDraw.Draw(lineImg)
-    draw.line(coords, fill="black",width=3)
+    draw.line(coords, fill="black",width=9)
     img.paste(lineImg, (0, 0), mask=lineImg)
 
 
@@ -233,21 +234,33 @@ def fill_project_details(cpNo,fileName,zoom):
     can.drawString(450, y, str(dets["TFC"]))
 
     y = y - 21
-    can.drawString(225, y, str(survey["assignedEnumerators"]))
-    can.drawString(480, y, str(survey["minEnumerators"]))
+    enumerators = tfcGrading[int(dets["TFC"])]
+    can.drawString(225, y, str(enumerators[0]))
+    can.drawString(480, y, str(enumerators[1]))
 
 
     y = y -448
 
     img = create_map_image_for_pdf(cpNo,items,line,zoom)
-    img.save("test.jpg")
+    img.convert("RGB").save("test.jpg")
     print("type of image is", type(img))
     print("size of image is",img.size)
-    firstParking = SiteAssessmentSurvey.objects.filter(project__countPointCode=cpNo)[0].itemofinterest_set.filter(itemType=3,first=True)
-    firstStandout = SiteAssessmentSurvey.objects.filter(project__countPointCode=cpNo)[0].itemofinterest_set.filter(itemType=4,first=True)
-    print("first parking is",firstParking)
-
-    sizes = [stringWidth(text, "Helvetica", 8)  for text in [firstParking[0].info, firstStandout[0].info, lineInfo]]
+    stringList = []
+    firstParking = SiteAssessmentSurvey.objects.filter(project__countPointCode=cpNo)[0].itemofinterest_set.filter(itemType=3, first=True)
+    firstStandout = SiteAssessmentSurvey.objects.filter(project__countPointCode=cpNo)[0].itemofinterest_set.filter(itemType=4, first=True)
+    if len(firstParking) > 0:
+        firstParking = firstParking[0]
+        stringList.append(firstParking.info)
+    else:
+        firstParking = None
+    print("first standout is",firstStandout)
+    if len(firstStandout) > 0:
+        firstStandout = firstStandout[0]
+        stringList.append(firstStandout.info)
+    else:
+        firstStandout = None
+    stringList.append(lineInfo)
+    sizes = [stringWidth(text, "Helvetica", 8)  for text in stringList]
     print("sizes are",sizes)
     maxSize = int(max(sizes) + stringWidth("Standing Info: ", "Helvetica", 8))
     print("max size in pixels is",maxSize)
@@ -268,8 +281,9 @@ def fill_project_details(cpNo,fileName,zoom):
     can.drawString(52, y + 400, "Standing Info: " )
     can.drawString(52, y + 388, "         CP Info: ")
     can.setFillColorRGB(0, 0, 0)
-    can.drawString(105,y+412,firstParking[0].info)
-    can.drawString(105, y + 400, firstStandout[0].info)
+    can.drawString(105,y+412,firstParking.info)
+    if not firstStandout is None:
+        can.drawString(105, y + 400, firstStandout[0].info)
     can.drawString(105, y + 388, lineInfo)
     print("aspersref is",survey["asPerSRef"])
     can.setFont("Helvetica-Bold", 10)
@@ -418,8 +432,20 @@ def fill_project_details(cpNo,fileName,zoom):
     for item in siteSpecificComments:
         can.drawString(55, y, item)
         y -= 8
+    signatureFile = survey["signature"]
+    if os.path.exists(signatureFile):
+        print("signature file is",signatureFile)
+        img = Image.open(signatureFile)
+        pdfImg = ImageReader(img)
+        # img.save("overview.jpg")
+        # img.show()
 
-
+        print("y is", y)
+        can.drawImage(pdfImg, 200, y -236, width=90, height=30,mask=[255,255,255,255,255,255])
+    can.setFont("Helvetica-Bold", 9)
+    d = datetime.datetime.now().date()
+    can.drawString(420, y -230, str(d.day))
+    can.drawString(446, y - 230, str(d.month))
     can.save()
     #packet.seek(0)
     #new_pdf = PyPDF2.PdfFileReader(packet)
@@ -449,9 +475,16 @@ def format_complex_output(cpNo):
     foodAccess = ""
     firstParking = SiteAssessmentSurvey.objects.filter(project__countPointCode=cpNo)[0].itemofinterest_set.filter(itemType=3,first=True)
     firstStandout = SiteAssessmentSurvey.objects.filter(project__countPointCode=cpNo)[0].itemofinterest_set.filter(itemType=4,first=True)
+    if len(firstParking)> 0:
+        firstParking = firstParking[0]
+    else:
+        firstParking = None
+    if len(firstStandout)> 0:
+        firstStandout = firstStandout[0]
+    else:
+        firstStandout = None
+    otherParking = SiteAssessmentSurvey.objects.filter(project__countPointCode=cpNo)[0].itemofinterest_set.filter(itemType=3, first=False)
 
-    otherParking = SiteAssessmentSurvey.objects.filter(project__countPointCode=cpNo)[0].itemofinterest_set.filter(
-        itemType=3, first=False)
     strSize = 0
     for i, p in enumerate(otherParking.values("info", "permissions")):
         # strSize = stringWidth(p["info"] + " - " + p["permissions"], "Helvetica", 6)
@@ -474,17 +507,17 @@ def format_complex_output(cpNo):
         else:
             siteSpecificComments.append(school[0].info + " - School and Police informed. ")
     print("size of permissions text is",strSize)
-    if not firstParking[0].permissions is None and firstParking[0].permissions != "":
-        if strSize  + stringWidth("Parking : " + firstParking[0].permissions, "Helvetica", 6) < 400:
-            permissionsText += "Parking : " + firstParking[0].permissions
+    if not firstParking is None and not firstParking.permissions is None and firstParking.permissions != "":
+        if strSize  + stringWidth("Parking : " + firstParking.permissions, "Helvetica", 6) < 400:
+            permissionsText += "Parking : " + firstParking.permissions
         else:
-            siteSpecificComments.append("Primary Parking Permissions: " + firstParking[0].permissions)
+            siteSpecificComments.append("Primary Parking Permissions: " + firstParking.permissions)
     strSize = stringWidth(permissionsText, "Helvetica", 6)
-    if not firstStandout[0].permissions is None and firstStandout[0].permissions != "":
-        if strSize  + stringWidth(" Standout : " + firstStandout[0].permissions, "Helvetica", 6) < 400:
-            permissionsText += " Standout : " + firstStandout[0].permissions
+    if not firstStandout is None and not firstStandout.permissions is None and firstStandout.permissions != "":
+        if strSize  + stringWidth(" Standout : " + firstStandout.permissions, "Helvetica", 6) < 400:
+            permissionsText += " Standout : " + firstStandout.permissions
         else:
-            siteSpecificComments.append("Primary Standout Permissions: " + firstStandout[0].permissions)
+            siteSpecificComments.append("Primary Standout Permissions: " + firstStandout.permissions)
 
 
     toilet = SiteAssessmentSurvey.objects.filter(project__countPointCode=cpNo)[0].itemofinterest_set.filter(itemType=0, first=True)
@@ -592,7 +625,7 @@ def save_network_info(request):
         setattr(survey, "methodology", int(data["methodology"]))
         setattr(survey, "furtherDetails", data["furtherDetails"])
         survey.save()
-        return HttpResponseRedirect("sign")
+        return HttpResponseRedirect("photo")
 
     raise Http404
 
@@ -756,6 +789,32 @@ def get_networkInfo(request):
     context = {"info":info,"methodology":survey["methodology"],"furtherDetails":survey["furtherDetails"],"maxVehicles":survey["maxVehiclesOnSite"]}
     return HttpResponse(template.render(context, request))
 
+def photo(request):
+    template = loader.get_template('NRTC/photo.html')
+    context = {}
+    return HttpResponse(template.render(context, request))
+
+
+def save_photo(request):
+    CPNo = request.session["CPNo"]
+    request.is_secure = True
+    print("dealing with cpno", CPNo)
+    saf = SiteAssessmentSurvey.objects.get(project__countPointCode=CPNo)
+    print("data",request.POST)
+    if request.method == 'POST':
+        data = request.POST
+        print("received ",data)
+        if request.FILES:
+            file_obj = request.FILES["imageFile"]
+            print(settings.STATIC_ROOT)
+            fileLoc = os.path.join(settings.MEDIA_ROOT, "photo for survey " + str(CPNo) + ".jpg")
+            with default_storage.open(fileLoc, 'wb+') as destination:
+                for chunk in file_obj.chunks():
+                    destination.write(chunk)
+            saf.sitePhoto = fileLoc
+            saf.save()
+            return HttpResponseRedirect("sign")
+
 
 def sign_survey(request):
     data = request.POST
@@ -766,7 +825,17 @@ def sign_survey(request):
 
 
 def finish_survey(request):
+    CPNo = request.session["CPNo"]
     request.is_secure=True
+    print("dealing with cpno",CPNo)
+    saf = SiteAssessmentSurvey.objects.get(project__countPointCode=CPNo)
+    if request.method == 'POST':
+        data = request.POST
+        print("received ",data)
+
+        image_path = s2if(data["output"],os.path.join(settings.MEDIA_ROOT, "signature for survey " + str(CPNo) + ".jpg"),pincolor=(0,0,0))
+        saf.signature = image_path
+        saf.save()
     template = loader.get_template('NRTC/finish.html')
     context = {}
     return HttpResponse(template.render(context, request))
@@ -884,17 +953,17 @@ def get_items_of_interest(request):
     else:
         startDate = datetime.datetime.now()
         endDate = (startDate + datetime.timedelta(days=14))
-    if survey.project.DfTRegion == "Scotland":
-        roadworks = NRTC.trafficscotland.get_all_roadworks_for_lat_lon(centre,startDate,endDate)
-    else:
-        roadworks = NRTC.roadworks.get_all_roadworks_for_lat_lon(centre, startDate, endDate)
-    for item in roadworks:
-        item["project_id"] = CPNo
+    #if survey.project.DfTRegion == "Scotland":
+        #roadworks = NRTC.trafficscotland.get_all_roadworks_for_lat_lon(centre,startDate,endDate)
+    #else:
+        #roadworks = NRTC.roadworks.get_all_roadworks_for_lat_lon(centre, startDate, endDate)
+    #for item in roadworks:
+        #item["project_id"] = CPNo
     otherPlaces = OtherPlaces.objects.all().values()
     otherPlaces = [{"lat": item["lat"], "info": item["name"], "permissions": "", "lon": item["lon"],"itemType": itemTypes[item["itemType"]], "id": item["id"]} for item in otherPlaces]
 
 
-    items+=roadworks
+    #items+=roadworks
     items+=otherPlaces
     #print("sending items of interest",items)
     return JsonResponse({"items": items,"centre":centre,"lineData":line})
@@ -1000,7 +1069,7 @@ def download_pdf(request):
     projectNo=request.session["CPNo"]
     print("projectno is",projectNo)
     proj = get_object_or_404(Project, pk=projectNo)
-    fileName = proj.CPCode + " " +  datetime.datetime.now().date().strftime("%d-%m-%Y") + ".pdf"
+    fileName = proj.CPCode + " assessment.pdf"
     fill_project_details(projectNo,fileName,zoom)
     with open(fileName, 'rb') as fh:
         response = HttpResponse(fh, content_type='application/pdf')

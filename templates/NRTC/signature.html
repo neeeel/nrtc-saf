@@ -15,7 +15,7 @@
     <script>
 
     $(document).ready(function () {
-        $('.sigPad').signaturePad({drawOnly:true});
+        $('.sigPad').signaturePad({drawOnly:true,penColour:'#000000',lineColour:'#000000',penWidth:2,lineTop:150});
     });
     </script>
 </head>
@@ -43,7 +43,7 @@
   </ul>
   <div class="sig sigWrapper">
     <div class="typed"></div>
-    <canvas class="pad" width="598" height="355"></canvas>
+    <canvas class="pad" width="698" height="169"></canvas>
     <input type="hidden" name="output" class="output">
   </div>
         <button class="app-button" type="submit" form ="back">Back</button>

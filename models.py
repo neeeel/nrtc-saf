@@ -55,6 +55,8 @@ class SiteAssessmentSurvey(models.Model):
     postcode = models.CharField("Postcode", max_length=20, blank=True, null=True)
     minEnumerators = models.IntegerField("Min Enums", blank=True, null=True)
     assignedEnumerators = models.IntegerField("Assigned Enums", blank=True, null=True)
+    signature = models.ImageField("Signature", blank=True, null=True)
+    sitePhoto = models.ImageField("photo", blank=True, null=True)
 
     ###
     ### network info

@@ -10,8 +10,7 @@ urlpatterns = [
     url(r'^projectMap', views.view_all_projects, name='get projects list'),
     url(r'^getProjectMap', views.get_project_map, name='get projects list'),
     url(r'^downloadPdf', views.download_pdf, name='get projects list'),
-    url(r'^sign', views.sign_survey, name='get projects list'),
-    url(r'^finish', views.finish_survey, name='get projects list'),
+
     url(r'^supervisor', views.get_projects_list, name='get projects list'),
     url(r'^getNetworkInfo', views.get_networkInfo, name='get projects list'),
     url(r'^getItemsOfInterest', views.get_items_of_interest, name='get projects list'),
@@ -41,6 +40,10 @@ urlpatterns = [
     url(r'^saveNetworkInfo', views.save_network_info, name='save'),
     url(r'^saveData', views.save_project_data, name='save'),
     url(r'^uploadProjectData', views.save_project_data, name='save'),
+    url(r'^sign', views.sign_survey, name='get projects list'),
+    url(r'^finish', views.finish_survey, name='get projects list'),
+    url(r'^photo', views.photo, name='photo'),
+    url(r'^savePhoto', views.save_photo, name='photo'),
     url(r'^updateScheduleFromClientFile', views.update_schedule_from_client_file, name='save')
 
 ]
